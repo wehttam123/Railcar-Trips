@@ -3,13 +3,11 @@
 
 <PageTitle>Railcar Trips</PageTitle>
 
-<h1>Input</h1>
+<h1>Upload Railcar or Equipment CSV file</h1>
 
-<p role="status">Current count: @currentCount</p>
+<input type="file" class="form-control" @onchange="UploadCsv" accept=".csv" />
 
-<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
-
-<br />
+<p />
 
 <h1>Grid</h1>
 
@@ -45,11 +43,10 @@ else
 }
 
 @code {
-    private int currentCount = 0;
 
-    private void IncrementCount()
+    private async Task UploadCsv(ChangeEventArgs e)
     {
-        currentCount++;
+
     }
 
     private WeatherForecast[]? forecasts;
