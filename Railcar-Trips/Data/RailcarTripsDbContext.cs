@@ -15,4 +15,5 @@ public class RailcarTripsDbContext : DbContext
     }
 
     public DbSet<City> Cities { get; set; }
+    public DbSet<Trip> Trips { get; set; }
 }
