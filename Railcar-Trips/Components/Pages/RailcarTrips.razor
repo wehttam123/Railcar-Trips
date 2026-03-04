@@ -46,7 +46,11 @@ else
 
     private async Task UploadCsv(ChangeEventArgs e)
     {
-
+        IBrowserFile value = (IBrowserFile)e.Value;
+        var file = value;
+        using var stream = file.OpenReadStream();
+        using var reader = new StreamReader(stream);
+        var htmlContent = await reader.ReadToEndAsync();
     }
 
     private WeatherForecast[]? forecasts;
