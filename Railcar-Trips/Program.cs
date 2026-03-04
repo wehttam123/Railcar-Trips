@@ -1,6 +1,12 @@
 using Railcar_Trips.Components;
+using Railcar_Trips.Data;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Add Entity Framework with SQL Server LocalDB
+builder.Services.AddDbContext<RailcarTripsDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
@@ -25,3 +31,4 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 app.Run();
+
