@@ -1,4 +1,4 @@
-namespace Railcar_Trips.Data;
+namespace Railcar_Trips.Data.Models;
 
 public class Trip
 {
