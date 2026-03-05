@@ -3,6 +3,7 @@
 public class Event
 {
     public int Id { get; set; }
-    public required string EventTime { get; set; }
+    public string EventCode { get; set; }
+    public DateTime EventTime { get; set; }
     public int CityId { get; set; }
 }

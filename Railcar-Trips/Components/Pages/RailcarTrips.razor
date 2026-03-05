@@ -1,11 +1,15 @@
 ﻿@page "/railcartrips"
+@using Railcar_Trips.Data
+@using Railcar_Trips.Data.Models
 @rendermode InteractiveServer
+@inject RailcarTripsDbContext context
 
 <PageTitle>Railcar Trips</PageTitle>
 
 <h1>Upload Railcar or Equipment CSV file</h1>
 
-<input type="file" class="form-control" @onchange="UploadCsv" accept=".csv" />
+@* Must be csv file *@
+<InputFile OnChange="ReadCsv" accept=".csv" class="form-control" />
 
 <p />
 
@@ -13,7 +17,7 @@
 
 <p>This component demonstrates showing data.</p>
 
-@if (forecasts == null)
+@*if (forecasts == null)
 {
     <p><em>Loading...</em></p>
 }
@@ -40,17 +44,47 @@ else
             }
         </tbody>
     </table>
-}
+}*@
 
 @code {
 
-    private async Task UploadCsv(ChangeEventArgs e)
+    private async Task ReadCsv(InputFileChangeEventArgs e)
     {
-        IBrowserFile value = (IBrowserFile)e.Value;
-        var file = value;
+        // TODO: handle csv file that doesn't match expected format
+
+        // Assuming valid input file
+        var file = e.File;
+
         using var stream = file.OpenReadStream();
         using var reader = new StreamReader(stream);
-        var htmlContent = await reader.ReadToEndAsync();
+
+        var lines = new List<Event>();
+        var skipHeaders = false;
+
+        string? line;
+        while ((line = await reader.ReadLineAsync()) != null)
+        {
+            if (!skipHeaders)
+            {
+                skipHeaders = true;
+                continue;
+            }
+
+            var data = line.Split(',');
+
+            // Assuming valid data
+            var eventData = new Event
+                {
+                    EventCode = data[1],
+                    EventTime = DateTime.Parse(data[2]),
+                    CityId = Convert.ToInt32(data[3])
+                };
+
+            lines.Add(eventData);
+        }
+
+        context.Events.AddRange(lines);
+        context.SaveChanges();
     }
 
     private WeatherForecast[]? forecasts;
