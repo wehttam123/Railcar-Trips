@@ -53,6 +53,8 @@ else
         var ReleasedEvents = new List<Event>();
         var PlacedEvents = new List<Event>();
 
+        var Trips = new List<Trip>();
+
         // TODO: handle csv file that doesn't match expected format
 
         // Assuming valid input file
@@ -75,26 +77,38 @@ else
             var data = line.Split(',');
 
             // Assuming valid data
+            var EquipmentId = data[0];
             var EventCode = data[1];
+            var EventTime = DateTime.Parse(data[2]);
+            var CityId = Convert.ToInt32(data[3]);
 
             switch (EventCode)
             {
                 case "W":
                     ReleasedEvents.Add(new Event
                     {
-                        EquipmentId = data[0],
+                        EquipmentId = EquipmentId,
                         EventCode = EventCode,
-                        EventTime = DateTime.Parse(data[2]),
-                        CityId = Convert.ToInt32(data[3])
+                        EventTime = EventTime,
+                        CityId = CityId
                     });
+
+                    // Create new trips from released events
+                    Trips.Add(new Trip
+                    {
+                        EquipmentId = EquipmentId,
+                        StartUTC = EventTime,
+                        OriginCityId = CityId
+                    });
+
                     break;
                 case "Z":
                     PlacedEvents.Add(new Event
                     {
-                        EquipmentId = data[0],
+                        EquipmentId = EquipmentId,
                         EventCode = EventCode,
-                        EventTime = DateTime.Parse(data[2]),
-                        CityId = Convert.ToInt32(data[3]),
+                        EventTime = EventTime,
+                        CityId = CityId,
                     });
                     break;
                 default:
@@ -102,8 +116,34 @@ else
             }
         }
 
+        // Save To DB
         context.Events.AddRange(ReleasedEvents);
         context.Events.AddRange(PlacedEvents);
+        context.Trips.AddRange(Trips);
+        context.SaveChanges();
+
+        // End trips with placed events
+        // This assumes that the events are in order by start and end time *** will need to sort lists first
+        foreach (var Event in PlacedEvents)
+        {
+            // Find the trip with the same equipment id that doesn't have an end time yet
+            var trip = Trips.FirstOrDefault(t => t.EquipmentId == Event.EquipmentId && t.EndUTC == null);
+
+            // If a trip is found, Update the trip with the end time and destination city
+            if (trip != null)
+            {
+                trip.EndUTC = Event.EventTime;
+                trip.DestinationCityId = Event.CityId;
+
+                // calculate TotalTripHours
+                trip.TotalTripHours = (trip.EndUTC - trip.StartUTC)?.TotalHours;
+
+                // Save changes to the trip in the database
+                context.Trips.Update(trip);
+            }
+        }
+
+        // Update DB
         context.SaveChanges();
     }
 
