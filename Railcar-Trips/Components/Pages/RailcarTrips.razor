@@ -2,6 +2,7 @@
 @using Microsoft.EntityFrameworkCore
 @using Railcar_Trips.Data
 @using Railcar_Trips.Data.Models
+@using System.Globalization
 @rendermode InteractiveServer
 @inject RailcarTripsDbContext context
 
@@ -56,13 +57,13 @@
 
         var newTrips = new List<Trip>();
 
+        // TODO: Add button to ui to clear tables
         // Clear tables before loading new data
         context.Trips.RemoveRange(context.Trips);
         context.Events.RemoveRange(context.Events);
         context.SaveChanges();
 
         // TODO: handle csv file that doesn't match expected format
-
         // Assuming valid input file
         var file = e.File;
 
@@ -88,8 +89,10 @@
             // Assuming valid data
             var EquipmentId = data[0];
             var EventCode = data[1];
-            var EventTime = DateTime.Parse(data[2]);
+            var EventTime = DateTime.Parse(data[2], CultureInfo.InvariantCulture);
             var CityId = Convert.ToInt32(data[3]);
+
+            var localTime = ConvertToLocalTimezone(EventTime, cityLookup[CityId]);
 
             switch (EventCode)
             {
@@ -98,7 +101,7 @@
                     {
                         EquipmentId = EquipmentId,
                         EventCode = EventCode,
-                        EventTime = EventTime,
+                        EventTime = localTime,
                         CityId = CityId
                     });
 
@@ -106,7 +109,7 @@
                     newTrips.Add(new Trip
                     {
                         EquipmentId = EquipmentId,
-                        StartUTC = EventTime,
+                        StartUTC = localTime,
                         OriginCityId = CityId
                     });
 
@@ -116,7 +119,7 @@
                     {
                         EquipmentId = EquipmentId,
                         EventCode = EventCode,
-                        EventTime = EventTime,
+                        EventTime = localTime,
                         CityId = CityId,
                     });
                     break;
@@ -165,6 +168,22 @@
                              .Include(t => t.DestinationCity)
                              .ToList();
         StateHasChanged();
+    }
+
+    private DateTime ConvertToLocalTimezone(DateTime date, City city)
+    {
+        var tz = TimeZoneInfo.FindSystemTimeZoneById(city.TimeZone);
+
+        // Found this fix for some cases:
+        // If this local time falls into the DST gap, nudge it forward
+        if (tz.IsInvalidTime(date))
+        {
+            // Simple strategy: move it ahead 1 hour into the valid range
+            date = date.AddHours(1);
+        }
+
+        // Convert to UTC
+        return TimeZoneInfo.ConvertTimeToUtc(date, tz);
     }
 }
 
