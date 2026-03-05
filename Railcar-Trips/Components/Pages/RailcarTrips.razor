@@ -54,6 +54,11 @@
 
         var newTrips = new List<Trip>();
 
+        // Clear tables before loading new data
+        context.Trips.RemoveRange(context.Trips);
+        context.Events.RemoveRange(context.Events);
+        context.SaveChanges();
+
         // TODO: handle csv file that doesn't match expected format
 
         // Assuming valid input file
