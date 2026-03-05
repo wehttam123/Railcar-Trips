@@ -72,6 +72,9 @@
         string? line;
         var skipHeaders = false;
 
+        // Map cities into dictionary to speed up lookup
+        var cityLookup = context.Cities.ToDictionary(c => c.CityId, c => c);
+
         while ((line = await reader.ReadLineAsync()) != null)
         {
             if (!skipHeaders)
