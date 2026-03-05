@@ -6,54 +6,53 @@
 
 <PageTitle>Railcar Trips</PageTitle>
 
-<h1>Upload Railcar or Equipment CSV file</h1>
+<h1>Upload Railcar Equipment CSV file</h1>
 
 @* Must be csv file *@
 <InputFile OnChange="ReadCsv" accept=".csv" class="form-control" />
 
 <p />
 
-<h1>Grid</h1>
+<h1>Trips</h1>
 
-<p>This component demonstrates showing data.</p>
-
-@*if (forecasts == null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
     <table class="table">
         <thead>
             <tr>
-                <th>Date</th>
-                <th aria-label="Temperature in Celsius">Temp. (C)</th>
-                <th aria-label="Temperature in Fahrenheit">Temp. (F)</th>
-                <th>Summary</th>
+                <th>equipment id</th>
+                <th>origin</th>
+                <th>destination</th>
+                <th>start date/time</th>
+                <th>end date/time</th>
+                <th>total trip hours</th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var forecast in forecasts)
+        @if (Trips != null)
+        {
+            @foreach (var t in Trips)
             {
                 <tr>
-                    <td>@forecast.Date.ToShortDateString()</td>
-                    <td>@forecast.TemperatureC</td>
-                    <td>@forecast.TemperatureF</td>
-                    <td>@forecast.Summary</td>
+                    <td>@t.EquipmentId</td>
+                    <td>@t.OriginCityId</td>
+                    <td>@t.DestinationCityId</td>
+                    <td>@t.StartUTC</td>
+                    <td>@t.EndUTC</td>
+                    <td>@t.TotalTripHours</td>
                 </tr>
             }
+        }
         </tbody>
     </table>
-}*@
 
 @code {
+    private List<Trip> Trips = new();
 
     private async Task ReadCsv(InputFileChangeEventArgs e)
     {
         var ReleasedEvents = new List<Event>();
         var PlacedEvents = new List<Event>();
 
-        var Trips = new List<Trip>();
+        var newTrips = new List<Trip>();
 
         // TODO: handle csv file that doesn't match expected format
 
@@ -94,7 +93,7 @@ else
                     });
 
                     // Create new trips from released events
-                    Trips.Add(new Trip
+                    newTrips.Add(new Trip
                     {
                         EquipmentId = EquipmentId,
                         StartUTC = EventTime,
@@ -119,7 +118,7 @@ else
         // Save To DB
         context.Events.AddRange(ReleasedEvents);
         context.Events.AddRange(PlacedEvents);
-        context.Trips.AddRange(Trips);
+        context.Trips.AddRange(newTrips);
         context.SaveChanges();
 
         // End trips with placed events
@@ -127,7 +126,7 @@ else
         foreach (var Event in PlacedEvents)
         {
             // Find the trip with the same equipment id that doesn't have an end time yet
-            var trip = Trips.FirstOrDefault(t => t.EquipmentId == Event.EquipmentId && t.EndUTC == null);
+            var trip = newTrips.FirstOrDefault(t => t.EquipmentId == Event.EquipmentId && t.EndUTC == null);
 
             // If a trip is found, Update the trip with the end time and destination city
             if (trip != null)
@@ -145,31 +144,10 @@ else
 
         // Update DB
         context.SaveChanges();
-    }
 
-    private WeatherForecast[]? forecasts;
-
-    protected override async Task OnInitializedAsync()
-    {
-        // Simulate asynchronous loading to demonstrate streaming rendering
-        await Task.Delay(500);
-
-        var startDate = DateOnly.FromDateTime(DateTime.Now);
-        var summaries = new[] { "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching" };
-        forecasts = Enumerable.Range(1, 5).Select(index => new WeatherForecast
-        {
-            Date = startDate.AddDays(index),
-            TemperatureC = Random.Shared.Next(-20, 55),
-            Summary = summaries[Random.Shared.Next(summaries.Length)]
-        }).ToArray();
-    }
-
-    private class WeatherForecast
-    {
-        public DateOnly Date { get; set; }
-        public int TemperatureC { get; set; }
-        public string? Summary { get; set; }
-        public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+        // Load trips into table
+        Trips = context.Trips.ToList();
+        StateHasChanged();
     }
 }
 
