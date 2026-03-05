@@ -1,4 +1,5 @@
 ﻿@page "/railcartrips"
+@using Microsoft.EntityFrameworkCore
 @using Railcar_Trips.Data
 @using Railcar_Trips.Data.Models
 @rendermode InteractiveServer
@@ -21,8 +22,8 @@
                 <th>equipment id</th>
                 <th>origin</th>
                 <th>destination</th>
-                <th>start date/time</th>
-                <th>end date/time</th>
+                <th>start date/time (in local time zone)</th>
+                <th>end date/time (in local time zone)</th>
                 <th>total trip hours</th>
             </tr>
         </thead>
@@ -33,8 +34,8 @@
             {
                 <tr>
                     <td>@t.EquipmentId</td>
-                    <td>@t.OriginCityId</td>
-                    <td>@t.DestinationCityId</td>
+                    <td>@t.OriginCity?.CityName</td>
+                    <td>@t.DestinationCity?.CityName</td>
                     <td>@t.StartUTC</td>
                     <td>@t.EndUTC</td>
                     <td>@t.TotalTripHours</td>
@@ -151,7 +152,10 @@
         context.SaveChanges();
 
         // Load trips into table
-        Trips = context.Trips.ToList();
+        // Map origin and destination city names using the CityId foreign key
+        Trips = context.Trips.Include(t => t.OriginCity)
+                             .Include(t => t.DestinationCity)
+                             .ToList();
         StateHasChanged();
     }
 }
