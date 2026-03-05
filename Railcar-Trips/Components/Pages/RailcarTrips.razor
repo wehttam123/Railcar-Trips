@@ -19,12 +19,12 @@
     <table class="table">
         <thead>
             <tr>
-                <th>equipment id</th>
-                <th>origin</th>
-                <th>destination</th>
-                <th>start date/time (in local time zone)</th>
-                <th>end date/time (in local time zone)</th>
-                <th>total trip hours</th>
+                <th>Equipment Id</th>
+                <th>Origin</th>
+                <th>Destination</th>
+                <th>Start date/time (in local time zone)</th>
+                <th>End date/time (in local time zone)</th>
+                <th>Total trip hours</th>
             </tr>
         </thead>
         <tbody>
@@ -38,7 +38,8 @@
                     <td>@t.DestinationCity?.CityName</td>
                     <td>@t.StartUTC</td>
                     <td>@t.EndUTC</td>
-                    <td>@t.TotalTripHours</td>
+                    <td>@(t.TotalTripHours > 0 ? t.TotalTripHours?.ToString("0.00") : "")
+                    </td>
                 </tr>
             }
         }
