@@ -128,8 +128,12 @@
         context.Trips.AddRange(newTrips);
         context.SaveChanges();
 
+        // Order events so that start and end times match
+        newTrips = newTrips.OrderBy(t => t.StartUTC).ToList();
+        PlacedEvents = PlacedEvents.OrderBy(e => e.EventTime).ToList();
+
         // End trips with placed events
-        // This assumes that the events are in order by start and end time *** will need to sort lists first
+        // This assumes that the events are in order by start and end time
         foreach (var Event in PlacedEvents)
         {
             // Find the trip with the same equipment id that doesn't have an end time yet
