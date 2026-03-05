@@ -47,6 +47,16 @@
         </tbody>
     </table>
 
+@*
+TODO: Instead of having all the code for the component in one file, depending on the scope and 
+requirements of the project, it would be better to move this code into a formal archtecture.
+
+* There should be a way to select a particular trip and see its events in order (bonus / nice to have).
+TODO: This item requires more understanding about the "Trips" data structure and its relationship to Events.
+I have made the assumtion in this project that a trip is defined as having one starting destination 
+and one ending destination with no stops inbetween.
+*@
+
 @code {
     private List<Trip> Trips = new();
 
