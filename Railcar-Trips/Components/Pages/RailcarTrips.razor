@@ -50,6 +50,9 @@ else
 
     private async Task ReadCsv(InputFileChangeEventArgs e)
     {
+        var ReleasedEvents = new List<Event>();
+        var PlacedEvents = new List<Event>();
+
         // TODO: handle csv file that doesn't match expected format
 
         // Assuming valid input file
@@ -58,10 +61,9 @@ else
         using var stream = file.OpenReadStream();
         using var reader = new StreamReader(stream);
 
-        var lines = new List<Event>();
+        string? line;
         var skipHeaders = false;
 
-        string? line;
         while ((line = await reader.ReadLineAsync()) != null)
         {
             if (!skipHeaders)
@@ -73,17 +75,33 @@ else
             var data = line.Split(',');
 
             // Assuming valid data
-            var eventData = new Event
-                {
-                    EventCode = data[1],
-                    EventTime = DateTime.Parse(data[2]),
-                    CityId = Convert.ToInt32(data[3])
-                };
+            var EventCode = data[1];
 
-            lines.Add(eventData);
+            switch (EventCode)
+            {
+                case "W":
+                    ReleasedEvents.Add(new Event
+                    {
+                        EventCode = EventCode,
+                        EventTime = DateTime.Parse(data[2]),
+                        CityId = Convert.ToInt32(data[3])
+                    });
+                    break;
+                case "Z":
+                    PlacedEvents.Add(new Event
+                    {
+                        EventCode = EventCode,
+                        EventTime = DateTime.Parse(data[2]),
+                        CityId = Convert.ToInt32(data[3])
+                    });
+                    break;
+                default:
+                    break;
+            }
         }
 
-        context.Events.AddRange(lines);
+        context.Events.AddRange(ReleasedEvents);
+        context.Events.AddRange(PlacedEvents);
         context.SaveChanges();
     }
 
