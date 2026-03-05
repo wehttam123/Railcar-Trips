@@ -82,6 +82,7 @@ else
                 case "W":
                     ReleasedEvents.Add(new Event
                     {
+                        EquipmentId = data[0],
                         EventCode = EventCode,
                         EventTime = DateTime.Parse(data[2]),
                         CityId = Convert.ToInt32(data[3])
@@ -90,9 +91,10 @@ else
                 case "Z":
                     PlacedEvents.Add(new Event
                     {
+                        EquipmentId = data[0],
                         EventCode = EventCode,
                         EventTime = DateTime.Parse(data[2]),
-                        CityId = Convert.ToInt32(data[3])
+                        CityId = Convert.ToInt32(data[3]),
                     });
                     break;
                 default:

@@ -6,4 +6,6 @@ public class Event
     public string EventCode { get; set; }
     public DateTime EventTime { get; set; }
     public int CityId { get; set; }
+
+    public string EquipmentId { get; set; }
 }
